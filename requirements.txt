@@ -1,0 +1,9 @@
+langchain
+python-dotenv
+pandas
+ipykernel
+langchain_groq
+langchain_openai
+langchain_google_genai
+
+-e .
