@@ -12,6 +12,11 @@ git commit -m "your commit message"
 git push origin main
 
 
+### Requirements for this project
+1. LLM Model ## from groq, huggingface (free), openai, claue (paid), gemini (15 days free access), Ollama (local setup)
+2. Embedding model ## huggingface (free), openai, gemini (paid)
+3. Vector database ## inmemory (chroma DB, FAISS), ## ondisk ## cloud based for deployment (AWS bedrock)
+
 
 
 
