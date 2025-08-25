@@ -1,9 +1,6 @@
 import os
-import sys
-import fitz
-import uuid
-from typing import List, Dict, Any
-from langchain_community.document_loaders import TextLoader, PyMuPDFLoader
+import uuid # for generating unique session ids
+from langchain_community.document_loaders import PyMuPDFLoader
 from datetime import datetime
 from logger.custom_logger import CustomLogger
 from exception.custom_exception import DocumentPortalException
@@ -20,7 +17,7 @@ class DocumentHandler():
                 "DATA_STORAGE_PATH", 
                 os.path.join(os.getcwd(), "data", "document_analysis")
             )
-            self.session_id = session_id or f"session_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+            self.session_id = session_id or f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
             self.session_path = os.path.join(self.data_dir, self.session_id)
             os.makedirs(self.session_path, exist_ok=True)
 
@@ -30,18 +27,18 @@ class DocumentHandler():
             self.logger.error(f"Error initializing DocumentHandler: {e}")
             raise DocumentPortalException("Error initializing DocumentHandler", e) from e
         
-    def save_pdf(self, uploaded_file) -> str:
+    def save_pdf_to_session_path(self, pdf_file) -> str:
         try:
-            filename = os.path.basename(uploaded_file.name)
+            filename = os.path.basename(pdf_file.name)
 
             if not filename.lower().endswith('.pdf'):
                 raise DocumentPortalException("Only PDF files are supported", None)
             
             save_path = os.path.join(self.session_path, filename)
             with open(save_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+                f.write(pdf_file.getbuffer()) ## for in-memory file processing or saving
             
-            self.logger.info(f"PDF saved to {save_path}")
+            self.logger.info(f"PDF saved to session_path: {save_path}")
             return save_path
         
         except Exception as e:
@@ -68,7 +65,7 @@ class DocumentHandler():
             
 if __name__ == "__main__":
     from pathlib import Path
-    from io import BytesIO # processing file in memory
+    from io import BytesIO  # processing file in memory
     handler = DocumentHandler()
     pdf_path = r"C:\\Users\\s1296718\\OneDrive - Syngenta\\Desktop\\LLMOPs_course_KrishNaik\\document_portal\\data\\document_analysis\NIPS-2017-attention-is-all-you-need-Paper.pdf"
     
@@ -86,7 +83,7 @@ if __name__ == "__main__":
     handler = DocumentHandler(session_id="test_session_001")
 
     try:
-        saved_path = handler.save_pdf(dummy_pdf)
+        saved_path = handler.save_pdf_to_session_path(dummy_pdf)
         print(f"PDF saved at: {saved_path}")
         content = handler.read_pdf(saved_path)
         print(f"Extracted {len(content)} characters from PDF.")
