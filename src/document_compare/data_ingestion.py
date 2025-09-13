@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-import fitz  # PyMuPDF
+import fitz
 import os
 from langchain_community.document_loaders import PyMuPDFLoader
 from datetime import datetime
@@ -10,7 +10,7 @@ from exception.custom_exception import DocumentPortalException
 
 class DocumentIngestion():
     def __init__(self, base_dir="data/document_compare"):
-        self.log = CustomLogger.get_logger(__name__)
+        self.log = CustomLogger().get_logger(__name__)
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)    
 
@@ -71,7 +71,7 @@ class DocumentIngestion():
             self.log.error(f"Error reading PDF files: {e}")
             raise DocumentPortalException("An error occurred while reading the PDF", sys)
         
-    def combine_documents(self, ref_text: str, actual_text: str) -> str:
+    def combine_documents(self) -> str:
         '''Combines text from two documents for comparison.'''
         try:
             content_dict = {}

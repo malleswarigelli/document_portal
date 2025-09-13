@@ -11,9 +11,9 @@ from langchain.output_parsers import OutputFixingParser
 
 
 class DocumentComparatorLLM():
-    def __init__(self, logger: CustomLogger):
+    def __init__(self):
         load_dotenv()  # load environment variables
-        self.log = logger
+        self.log = CustomLogger().get_logger(__name__)
         self.model_loader = ModelLoader()
         self.embedding_model = self.model_loader.load_embeddings()
         self.llm_model = self.model_loader.load_llm()
@@ -25,7 +25,7 @@ class DocumentComparatorLLM():
             verbose=True
         )
         self.prompt = PROMPT_REGISTRY["document_compare_prompt"]
-        self.chain = self.prompt | self.llm_model | self.json_parser | self.output_parser
+        self.chain = self.prompt | self.llm_model | self.json_parser
         self.log.info("DocumentComparatorLLM initialized with model and parser successfully")
 
     def compare_documents(self, combined_docs):
