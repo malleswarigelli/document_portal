@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Union
+from pydantic import BaseModel, Field, RootModel
+from typing import List, Union, Optional, List, Dict, Any
 
 
 class Metadata(BaseModel):
@@ -11,3 +11,10 @@ class Metadata(BaseModel):
     Language: str
     PageCount: Union[int, str]
     SentimentTone: str
+
+class ChangeFormat(BaseModel):
+    Page: str
+    Change: str
+
+class SummaryResponse(RootModel[list[ChangeFormat]]):
+    pass

@@ -1,65 +1,58 @@
 import os
+import sys
 from utils.model_loader import ModelLoader
-from logger.custom_logger import CustomLogger
+from logger.custom_logger import CustomLogger as log
 from exception.custom_exception import DocumentPortalException
-from model.models import Metadata
+from model.models import *
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.output_parsers import OutputFixingParser
-from src.document_analyzer.data_ingestion import DocumentHandler
-from prompt.prompt_library import prompt
-
+from prompt.prompt_library import PROMPT_REGISTRY
 
 class DocumentAnalyzer:
     """
-    A class to analyze documents using pre-trained loaded models.
-
-    It uses the ModelLoader to get the necessary models for analysis.
+    Analyzes documents using a pre-trained model.
+    Automatically logs all actions and supports session-based organization.
     """
-    
     def __init__(self):
-        self.model_loader = ModelLoader()
-        self.logger = CustomLogger().get_logger(__name__)
-
         try:
-            # load models
-            self.loader = ModelLoader()
-            self.llm = self.loader.load_llm()
-            # prepare output parser
+            self.loader=ModelLoader()
+            self.llm=self.loader.load_llm()
+            
+            # Prepare parsers
             self.parser = JsonOutputParser(pydantic_object=Metadata)
-            self.output_parser = OutputFixingParser.from_llm(self.llm, self.parser) # parses llm output into json format
-
-            # prompt
-            self.prompt = prompt
-
-            self.logger.info("DocumentAnalyzer initialized successfully.")
-
+            self.fixing_parser = OutputFixingParser.from_llm(parser=self.parser, llm=self.llm)
+            
+            self.prompt = PROMPT_REGISTRY["document_analysis"]
+            
+            log.info("DocumentAnalyzer initialized successfully")
+            
+            
         except Exception as e:
-            self.logger.error("Error initializing DocumentAnalyzer", {e})
-            raise DocumentPortalException("Failed to initialize DocumentAnalyzer", sys)
+            log.error(f"Error initializing DocumentAnalyzer: {e}")
+            raise DocumentPortalException("Error in DocumentAnalyzer initialization", sys)
+        
+        
     
-    def analyze_document(self, document: str) -> Dict[str, Any]:
+    def analyze_document(self, document_text:str)-> dict:
         """
-        Analyze a document and return structured data.
-        
-        Args:
-            document (str): The text content of the document to analyze.
-        
-        Returns:
-            Dict[str, Any]: Structured analysis results.
+        Analyze a document's text and extract structured metadata & summary.
         """
         try:
-            self.logger.info("Chain is being created for document analysis.")
-            chain = self.prompt | self.llm | self.output_parser
-            self.logger.info("Chain created successfully.")
+            chain = self.prompt | self.llm | self.fixing_parser
+            
+            log.info("Meta-data analysis chain initialized")
 
             response = chain.invoke({
                 "format_instructions": self.parser.get_format_instructions(),
-                "document_text": document
+                "document_text": document_text
             })
-            self.logger.info("Metadata extraction is successful", keys=list(response.keys()))
 
+            log.info("Metadata extraction successful", keys=list(response.keys()))
+            
             return response
-        
+
         except Exception as e:
-            self.logger.error("Error during document analysis", error=str(e))
-            raise DocumentPortalException("Failed to analyze document", sys) from e
+            log.error("Metadata analysis failed", error=str(e))
+            raise DocumentPortalException("Metadata extraction failed",sys)
+        
+    
