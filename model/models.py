@@ -18,3 +18,9 @@ class ChangeFormat(BaseModel):
 
 class SummaryResponse(RootModel[list[ChangeFormat]]):
     pass
+
+class PromptType(str, Enum):
+    DOCUMENT_COMPARISON = "document_comparison"
+    DOCUMENT_ANALYSIS = "document_analysis"
+    CONTEXTUALIZE_QUESTION = "contextualize_question"
+    CONTEXT_QA = "context_qa"
